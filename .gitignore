@@ -205,3 +205,20 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/stats.html
+
+# llm-scry session persistence (Phase 4+)
+backend/.sessions/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+*.swp
+.claude/
