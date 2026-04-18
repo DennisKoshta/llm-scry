@@ -114,15 +114,20 @@ class ModelEngine:
         _, cache = self.model.run_with_cache(tokens, names_filter=_capture_filter)
         return cache
 
+    def prepare_prompt(self, session: Session, prompt: str) -> torch.Tensor:
+        """Tokenize prompt, populate session fields, return token tensor on device."""
+        self._require_loaded()
+        assert self.model is not None
+        prompt_ids = self.model.to_tokens(prompt)  # [1, seq]
+        session.prompt_token_ids = prompt_ids[0].tolist()
+        session.prompt_token_strs = list(self.model.to_str_tokens(prompt))  # type: ignore[arg-type]
+        return prompt_ids.to(self.device)
+
     async def stream_generate(
-        self, session: Session, req: GenerateRequest
+        self, session: Session, req: GenerateRequest, tokens: torch.Tensor
     ) -> AsyncIterator[TokenEvent]:
         self._require_loaded()
         assert self.model is not None
-
-        prompt_ids = self.model.to_tokens(req.prompt)  # [1, seq]
-        session.prompt_token_strs = self.model.to_str_tokens(req.prompt)  # type: ignore[assignment]
-        tokens = prompt_ids.to(self.device)
 
         for step in range(req.max_new_tokens):
             result = await asyncio.to_thread(

@@ -23,7 +23,21 @@ _queues: dict[str, asyncio.Queue[str | None]] = {}
 async def _run_generation(session: Session, req: GenerateRequest) -> None:
     queue = _queues[session.id]
     try:
-        async for event in engine.stream_generate(session, req):
+        tokens = engine.prepare_prompt(session, req.prompt)
+        prompt_payload = json.dumps(
+            {
+                "type": "prompt",
+                "tokens": [
+                    {"token_id": i, "token_str": s}
+                    for i, s in zip(
+                        session.prompt_token_ids, session.prompt_token_strs, strict=True
+                    )
+                ],
+            }
+        )
+        await queue.put(prompt_payload)
+
+        async for event in engine.stream_generate(session, req, tokens):
             payload = json.dumps({"type": "token", **event.model_dump()})
             await queue.put(payload)
         session.status = "complete"

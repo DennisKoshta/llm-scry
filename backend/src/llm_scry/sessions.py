@@ -17,6 +17,7 @@ class Session:
     id: str
     model_name: str
     prompt: str
+    prompt_token_ids: list[int] = field(default_factory=list)
     prompt_token_strs: list[str] = field(default_factory=list)
     tokens: list[TokenEvent] = field(default_factory=list)
     cache: ActivationCache | None = None

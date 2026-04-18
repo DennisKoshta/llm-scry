@@ -3,10 +3,33 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from ..engine import engine
-from ..schemas import AttentionResponse
+from ..schemas import AttentionResponse, PromptToken, SessionDetail
 from ..sessions import store
 
 router = APIRouter(prefix="/session", tags=["session"])
+
+
+@router.get("/{session_id}", response_model=SessionDetail)
+def get_session(session_id: str) -> SessionDetail:
+    session = store.get(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="session not found")
+    prompt_tokens = [
+        PromptToken(token_id=i, token_str=s)
+        for i, s in zip(
+            session.prompt_token_ids, session.prompt_token_strs, strict=True
+        )
+    ]
+    return SessionDetail(
+        id=session.id,
+        model_name=session.model_name,
+        prompt=session.prompt,
+        prompt_tokens=prompt_tokens,
+        generated_tokens=session.tokens,
+        status=session.status,
+        error=session.error,
+        created_at=session.created_at,
+    )
 
 
 @router.get("/{session_id}/attention", response_model=AttentionResponse)

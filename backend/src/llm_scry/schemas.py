@@ -33,6 +33,11 @@ class TokenEvent(BaseModel):
     top_k: list[TopKAlternative]
 
 
+class PromptToken(BaseModel):
+    token_id: int
+    token_str: str
+
+
 class GenerateRequest(BaseModel):
     prompt: str
     max_new_tokens: int = 32
@@ -51,6 +56,17 @@ class SessionSummary(BaseModel):
     n_generated: int
     created_at: datetime
     status: str  # "running" | "complete" | "error"
+
+
+class SessionDetail(BaseModel):
+    id: str
+    model_name: str
+    prompt: str
+    prompt_tokens: list[PromptToken]
+    generated_tokens: list[TokenEvent]
+    status: str
+    error: str | None
+    created_at: datetime
 
 
 class AttentionResponse(BaseModel):
